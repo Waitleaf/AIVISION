@@ -1,0 +1,8 @@
+asyncio==3.4.3
+opencv-python==4.8.1.78
+websockets==13.1
+mediapipe==0.10.11
+pyserial==3.5
+pyttsx3==2.90
+tensorflow==2.15.0
+numpy>=1.19.3
