@@ -6,7 +6,6 @@ import mediapipe as mp
 import random
 import time
 import numpy as np
-import base64
 import serial
 import pyttsx3
 import threading
@@ -92,7 +91,7 @@ shared_data = {"hand_style":None}
 lock= asyncio.Lock()#锁对象
 #前端的按钮点击返回参数1/2
 # global data
-async def recive_data(websocket,path):
+async def recive_data(websocket):
     global data
     data = await websocket.recv()
     print("接收参数：",data)
@@ -157,7 +156,7 @@ last_change_time = time.time()
 last_change_time_e = time.time()
 
 
-async def websocket_handler(websocket,path):
+async def websocket_handler(websocket):
     global value
     try:
         while True:
@@ -171,7 +170,7 @@ async def websocket_handler(websocket,path):
 
 
 # 读取视频流
-async def video_stream(websocket, path):
+async def video_stream(websocket):
     global last_change_time, random_img,flag,last_image,images_to_insert,resized_image,width,current_size_index,font,size,hands,mp_hands,count,correct_count,wrong_count,holistic,value,hand_tip,arm,R,D,L,U
     global experience_img,hand_tip,should_stop
     is_streaming = True  # 新增变量：表示当前是否正在传输视频流
@@ -307,7 +306,7 @@ async def video_stream(websocket, path):
                 is_streaming = False
         
 
-async def serial_communication(websocket, path):
+async def serial_communication(websocket):
     global value
     while True:
         async with lock:
@@ -361,25 +360,29 @@ async def serial_communication(websocket, path):
 
 
 # 启动 WebSocket 服务器
+# 启动 WebSocket 服务器
+async def main():
+    # 创建所有服务器
+    servers = [
+        websockets.serve(recive_data, "localhost", 8767),
+        websockets.serve(websocket_handler, "localhost", 8765),
+        websockets.serve(video_stream, "localhost", 8766),
+        websockets.serve(serial_communication, "localhost", 8768)
+    ]
+    
+    # 同时启动所有服务器
+    await asyncio.gather(*servers)
 
-#接收前端按钮返回参数
-start= websockets.serve(recive_data,"localhost",8767)
-#发送手部值value
-start_server = websockets.serve(
-    websocket_handler, "localhost", 8765
-)
-#传输视频流
-video_server = websockets.serve(
-    video_stream, "localhost", 8766
-)
-#传输语音
-speak_server = websockets.serve(
-    serial_communication, "localhost", 8768
-)
-
-# 同时运行4个服务器
-asyncio.get_event_loop().run_until_complete(start)
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_until_complete(video_server)
-asyncio.get_event_loop().run_until_complete(speak_server)
-asyncio.get_event_loop().run_forever()
+if __name__ == "__main__":
+    try:
+        # 获取事件循环
+        loop = asyncio.get_event_loop()
+        # 运行主程序
+        loop.run_until_complete(main())
+        # 保持事件循环运行
+        loop.run_forever()
+    except KeyboardInterrupt:
+        print("程序被用户中断")
+    finally:
+        # 清理工作
+        loop.close()
