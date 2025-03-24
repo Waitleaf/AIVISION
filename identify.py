@@ -360,7 +360,10 @@ async def serial_communication(websocket):
 
 
 # 启动 WebSocket 服务器
+<<<<<<< HEAD
+=======
 # 启动 WebSocket 服务器
+>>>>>>> upstream/main
 async def main():
     # 创建所有服务器
     servers = [
