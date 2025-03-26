@@ -16,6 +16,9 @@ experience_img = 0
 # hand_style = None  # 定义全局变量
 shared_data = {"hand_style":None}
 lock= asyncio.Lock()#锁对象
+last_value = None  # 添加变量跟踪上一次的值
+last_value_time = 0  # 添加时间戳记录上一次值变化的时间
+value_stable_duration = 1.0  # 值需要保持稳定的时间(秒)
 
 def choose_random_value(arr):#定义一个函数，在一个列表中选取随机值
     # 使用 random 模块的 choice 函数选择一个随机元素
@@ -23,8 +26,10 @@ def choose_random_value(arr):#定义一个函数，在一个列表中选取随�
     return random_value
 
 #********************检测函数**************
+# 修改identity函数，添加防抖动机制
 def identity(frame):
-    global last_change_time,correct_count,width,current_size_index,wrong_count,level,window_width,window_height, value,hand_tip
+    global last_change_time, correct_count, width, current_size_index, wrong_count, level, window_width, window_height, value, hand_tip
+    global last_value, last_value_time  # 添加新的全局变量
     
     # 获取帧的尺寸
     height, width = frame.shape[:2]
@@ -43,22 +48,42 @@ def identity(frame):
     text = ""
     color = (0, 255, 0)  # 默认绿色
     
+    # 保存旧值用于比较
+    old_value = value
+    
+    # 临时值，用于检测变化
+    temp_value = None
+    
     if hand_tip.x < arm.x - 0.05:
         text = L
-        value = 2
+        temp_value = 2
         color = (255, 0, 255)  # 紫色
     elif hand_tip.x > arm.x + 0.05:
         text = R
-        value = 3
+        temp_value = 3
         color = (0, 255, 255)  # 黄色
     elif hand_tip.y < arm.y - 0.05:
         text = U
-        value = 0
+        temp_value = 0
         color = (0, 255, 0)  # 绿色
     elif hand_tip.y > arm.y + 0.05:
         text = D
-        value = 1
+        temp_value = 1
         color = (0, 0, 255)  # 红色
+    
+    # 防抖动处理
+    current_time = time.time()
+    
+    # 如果检测到的值与上次不同，更新时间戳
+    if temp_value != last_value:
+        last_value = temp_value
+        last_value_time = current_time
+        # 不立即更新value，等待稳定
+    # 如果值保持稳定超过指定时间，才更新实际value
+    elif temp_value is not None and (current_time - last_value_time) > value_stable_duration:
+        if value != temp_value:  # 只有当value需要变化时才更新
+            value = temp_value
+            print(f"值稳定为: {value}")
     
     if text:
         # 获取文本大小
@@ -84,6 +109,13 @@ def identity(frame):
         cv2.putText(frame, text, (text_x+2, text_y+2), font, font_scale, (0, 0, 0), thickness+2, cv2.LINE_AA)
         # 绘制彩色文本
         cv2.putText(frame, text, (text_x, text_y), font, font_scale, color, thickness, cv2.LINE_AA)
+    
+    # 添加防抖动状态指示器
+    if temp_value is not None:
+        stability_progress = min(1.0, (current_time - last_value_time) / value_stable_duration)
+        bar_width = int(100 * stability_progress)
+        cv2.rectangle(frame, (10, 10), (110, 20), (100, 100, 100), -1)
+        cv2.rectangle(frame, (10, 10), (10 + bar_width, 20), (0, 255, 0), -1)
 
     return value
 
@@ -156,17 +188,198 @@ last_change_time = time.time()
 last_change_time_e = time.time()
 
 
+# 修改websocket_handler函数，添加防重复发送机制
+# 修改 websocket_handler 函数的防重复发送机制
 async def websocket_handler(websocket):
     global value
+    last_sent_value = None
+    last_sent_time = 0
+    min_send_interval = 2.0  # 最小发送间隔(秒)
+    
     try:
         while True:
-            # print("send")
-            print("send:",str(value))
-            # # 将值发送给 JavaScript 客户端
-            await websocket.send(str(value))
-            await asyncio.sleep(4.5)  # 等待 4.5 秒再发送下一次数据
-    except:
-        print("Error！")            
+            current_time = time.time()
+            
+            # 增加更严格的发送条件判断
+            if (value is not None and 
+                value != last_sent_value and  # 确保值不同
+                (current_time - last_sent_time) >= min_send_interval):  # 确保间隔足够
+                
+                print("send:", str(value))
+                # 将值发送给 JavaScript 客户端
+                await websocket.send(str(value))
+                last_sent_value = value  # 更新上次发送的值
+                last_sent_time = current_time  # 更新发送时间
+                value = None  # 发送后立即清空，避免重复发送
+            
+            # 增加较短的休眠时间，避免过于频繁的检查
+            await asyncio.sleep(0.1)
+    except Exception as e:
+        print(f"Error in websocket_handler: {e}")
+
+# 修改 identity 函数中的防抖动机制
+def identity(frame):
+    global last_change_time, correct_count, width, current_size_index, wrong_count, level, window_width, window_height, value, hand_tip
+    global last_value, last_value_time  # 添加新的全局变量
+    
+    # 获取帧的尺寸
+    height, width = frame.shape[:2]
+    
+    # 计算动态位置 - 调整为更合适的位置
+    text_x = int(width * 0.1)
+    text_y = int(height * 0.6)
+    
+    # 计算字体大小 - 根据宽度动态调整，但设置最小值
+    font_scale = max(1.5, width / 640 * 2.0)
+    
+    # 计算文本厚度 - 确保足够粗
+    thickness = max(3, int(width / 640 * 4))
+    
+    # 添加文本背景以增强可读性
+    text = ""
+    color = (0, 255, 0)  # 默认绿色
+    
+    # 保存旧值用于比较
+    old_value = value
+    
+    # 临时值，用于检测变化
+    temp_value = None
+    
+    if hand_tip.x < arm.x - 0.05:
+        text = L
+        temp_value = 2
+        color = (255, 0, 255)  # 紫色
+    elif hand_tip.x > arm.x + 0.05:
+        text = R
+        temp_value = 3
+        color = (0, 255, 255)  # 黄色
+    elif hand_tip.y < arm.y - 0.05:
+        text = U
+        temp_value = 0
+        color = (0, 255, 0)  # 绿色
+    elif hand_tip.y > arm.y + 0.05:
+        text = D
+        temp_value = 1
+        color = (0, 0, 255)  # 红色
+    
+    # 防抖动处理
+    current_time = time.time()
+    
+    # 如果检测到的值与上次不同，更新时间戳和状态
+    if temp_value != last_value:
+        last_value = temp_value
+        last_value_time = current_time
+        value = None  # 确保在稳定前不发送值
+    # 如果值保持稳定超过指定时间，才更新实际value
+    elif (temp_value is not None and 
+          temp_value == last_value and  # 确保值保持相同
+          (current_time - last_value_time) > value_stable_duration):
+        if value != temp_value:  # 只有当value需要变化时才更新
+            value = temp_value
+            print(f"值稳定为: {value}")
+            last_value_time = current_time  # 重置时间戳，避免连续触发
+    
+    if text:
+        # 获取文本大小
+        (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+        
+        # 确保文本框足够大
+        padding_x = 30
+        padding_y = 20
+        
+        # 绘制半透明背景 - 更大的背景框
+        overlay = frame.copy()
+        cv2.rectangle(overlay, 
+                     (text_x - padding_x, text_y - text_height - padding_y), 
+                     (text_x + text_width + padding_x, text_y + padding_y), 
+                     (0, 0, 0), 
+                     -1)
+        # 应用透明度
+        alpha = 0.7
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+        
+        # 绘制文本 - 先绘制黑色描边增强可读性
+        cv2.putText(frame, text, (text_x-2, text_y-2), font, font_scale, (0, 0, 0), thickness+2, cv2.LINE_AA)
+        cv2.putText(frame, text, (text_x+2, text_y+2), font, font_scale, (0, 0, 0), thickness+2, cv2.LINE_AA)
+        # 绘制彩色文本
+        cv2.putText(frame, text, (text_x, text_y), font, font_scale, color, thickness, cv2.LINE_AA)
+    
+    # 添加防抖动状态指示器
+    if temp_value is not None:
+        stability_progress = min(1.0, (current_time - last_value_time) / value_stable_duration)
+        bar_width = int(100 * stability_progress)
+        cv2.rectangle(frame, (10, 10), (110, 20), (100, 100, 100), -1)
+        cv2.rectangle(frame, (10, 10), (10 + bar_width, 20), (0, 255, 0), -1)
+
+    return value
+
+shared_data = {"hand_style":None}
+lock= asyncio.Lock()#锁对象
+#前端的按钮点击返回参数1/2
+# global data
+async def recive_data(websocket):
+    global data
+    data = await websocket.recv()
+    print("接收参数：",data)
+    # hand_style= data
+    async with lock:
+        shared_data["hand_style"]=data
+    print("hand_style-r=",shared_data["hand_style"])
+
+# 初始化语音引擎
+# engines = [pyttsx3.init() for _ in range(4)]  # 创建4个语音引擎实例
+
+# 创建四个线程池
+# executor = ThreadPoolExecutor(max_workers=4)
+
+# def speak(text):
+#     """使用语音引擎朗读文本"""
+#     # 选择一个语音引擎实例
+#     engine = engines[experience_img]
+#     engine.say(text)
+#     engine.runAndWait()
+
+# # 加载动图
+# with open("./templates/picture-css/speak.gif", "rb") as image_file:
+#     animated_gif = image_file.read()
+
+
+#初始化人脸识别模块
+mp_drawing = mp.solutions.drawing_utils
+mp_holistic = mp.solutions.holistic
+
+experience_img=0
+#初始化人脸识别模块
+mp_drawing = mp.solutions.drawing_utils
+mp_holistic = mp.solutions.holistic
+
+# 初始化Holistic模型
+holistic = mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+
+#初始化一些变量
+# value = None
+R="Right"
+L='Left'
+U="Up"
+D="Down"
+a=b=c=d=e=f=g=h=i=j=k=l=m=n=x=y= 0
+level=46
+
+correct_count = 0
+wrong_count = 0
+count = [x,a,b,c,d,e,f,g,h,i,j,k,l,m,n,y]
+
+# 初始化 Mediapipe Hands 模型
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.5)
+flag = ['Right','Left','Up','Down']
+
+
+font = cv2.FONT_HERSHEY_SIMPLEX#这里定义了文字的字体类型
+
+#现用time()函数获取现在的时间，赋值给变量last_change_time（上一次改变的时间）
+last_change_time = time.time()
+last_change_time_e = time.time()
 
 
 # 读取视频流

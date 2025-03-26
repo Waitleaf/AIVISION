@@ -302,7 +302,7 @@
             const imageElement = document.getElementById('image-container');
         }
         // 定时切换图片
-        setInterval(showImage, 5000);
+        // setInterval(showImage, 5000);
         // 初始化显示第一张图片,调用函数
         showImage();
         // 获取图片元素
@@ -320,16 +320,21 @@
             const value = event.data;
             if (value!="None"){
                 if (value===String(randomIndex)){
-                console.log("yes");
-                correct_count +=1;
-                document.getElementById('image-container').src = "./picture/true.png";
-
-            }
-            else if (value!=String(randomIndex)){
-                console.log("No");
-                wrong_count += 1;
-                document.getElementById('image-container').src = "./picture/false.png";
-            }
+                    console.log("yes");
+                    correct_count +=1;
+                    document.getElementById('image-container').src = "./picture/true.png";
+                    setTimeout(function() {
+                        showImage();
+                    }, 500);
+                }
+                else if (value!=String(randomIndex)){
+                    console.log("No");
+                    wrong_count += 1;
+                    document.getElementById('image-container').src = "./picture/false.png";
+                    setTimeout(function() {
+                        showImage();
+                    }, 500);
+                }
 
         // console.log(typeof event.data); // 输出 event.data 的数据类型
         // console.log(typeof randomIndex); // 输出 randomIndex 的数据类型    
@@ -390,7 +395,7 @@
                 imgElement.style.height = `${width}`;
                 wrong_count = 0
             } 
-                }
+        }
 
 
             
