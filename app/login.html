@@ -1,33 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>视力检测</title>
-    <link rel="stylesheet" type="text/css" href="./styles/login.css">
+    <link rel="stylesheet" href="./styles/login.css">
 </head>
+
 <body>
     <div class="container">
-        <div class="login-box">
-            <h1>[ 个人信息 ]</h1>
-            <h3><欢迎使用视力检测系统></h3>
-            <div class="input-box">
-                用户:<input type="text" placeholder="请输入用户名">
+        <div class="sign-in-box" id="sign-in-box">
+            <h1>
+                <div class="text text1">用户登录</div>
+            </h1>
+            <h3>
+                <div class="text text2">
+                    <欢迎使用视力检测系统>
+                </div>
+            </h3>
+            <form action="">
+                <div class="form-wrapper sign-in">
+                    <div class="input-item">
+                        <p>&nbsp;用户名</p>
+                        <input type="text" name="username">
+                    </div>
+                    <div class="input-item">
+                        <p>&nbsp;密码</p>
+                        <input type="password" name="password">
+                    </div>
+                    <div class="msg msg1">
+                        <div class="left">
+                            <a href="./retrieve.html" target="_blank">忘记密码</a>
+                        </div>
+                        <div class="right">
+                            <a href="#" id="register-link">注册</a>
+                        </div>
+                    </div>
+                    <button class="btn sign-in-btn" type="submit">登录</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="register-box" id="register-box">
+            <form action="">
+                <h1>
+                    <div class="text text1">用户注册</div>
+                </h1>
+                <h3>
+                    <div class="text text2">
+                        <欢迎使用视力检测系统>
+                    </div>
+                </h3>
+                <div class="form-wrapper register">
+                    <div class="input-item">
+                        <p>&nbsp;用户名</p>
+                        <input type="text" name="username" placeholder="6位以内字母数字">
+                    </div>
+                    <div class="input-item">
+                        <p>&nbsp;密码</p>
+                        <input type="password" name="password" placeholder="9-11位字母数字">
+                    </div>
+                    <div class="input-item">
+                        <p>&nbsp;提示词</p>
+                        <input type="text" name="hint" placeholder="10位以内中英文">
+                    </div>
+                    <div class="input-item">
+                        <p>&nbsp;答案</p>
+                        <input type="text" name="answer" placeholder="10位以内中英文">
+                    </div>
+                    <div class="left">
+                        <input type="checkbox" name="checkbox">
+                        我已同意<a href="#">用户协议</a>
+                    </div>
+                    <button class="btn register-btn">注册</button>
+                </div>
+            </form>
+            <div class="msg">
+                已有账号？
+                <a href="#" id="sign-in-link">登录</a>
             </div>
-            <div class="input-box">
-                ID：<input type="text" placeholder="请输入ID">
-            </div>
-            <div class="input-box">
-                密码:<input type="text" placeholder="请输入密码">
-            </div>
-            <a href="./text.html">
-                <button >
-                        确认
-                </button>
-            </a>
-            
         </div>
     </div>
 
+    <div class="set" id="popup">
+        <div class="text">
+            <p id="text">这是文本</p>
+            <button id="closePopupBtn">关闭</button>
+        </div>
+    </div>
+
+    <script src="./JS/login.js"></script>
+
 </body>
+
 </html>

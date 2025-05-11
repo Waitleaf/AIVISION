@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视力检测</title>
+    <link rel="stylesheet" href="./styles/retrieve.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="retrieve-box" id="retrieve-box">
+            <h1>
+                <div class="text text1">找回密码</div>
+            </h1>
+            <h3>
+                <div class="text text2">
+                    欢迎使用视力检测系统
+                </div>
+            </h3>
+            <form action="retrieve">
+                <div class="form-wrapper retrieveOne">
+                    <p class="registerText">&nbsp;请输入要找回的用户名:</p>
+                    <div class="input-item">
+                        <input type="text" name="inputUsername">
+                        <input type="text" name="passwordValue" style="display: none;">
+                    </div>
+                    <button class="btn retrieve-btn" type="submit">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="set" id="popup">
+        <div class="text">
+            <p id="text">这是文本</p>
+            <button id="closePopupBtn">关闭</button>
+        </div>
+    </div>
+
+    <script src="./JS/retrieve.js"></script>
+
+
+
+</body>
+
+</html>
