@@ -200,7 +200,7 @@ input[type="password"]::-ms-clear {
 }
 
 /* 文本和按钮样式 */
-.set .popup-text {
+.set .text {
     padding: 20px;
     color: white;
 }

@@ -8,10 +8,6 @@
     --score-blue: #75a7fe;
 }
 
-* {
-    user-select: none;
-}
-
 body {
     margin: 0;
     padding: 0;
@@ -313,39 +309,6 @@ button:hover {
     width: 160px;
     margin: 10px;
 }
-
-.colorBNSelect {
-    display: grid;
-    grid-template-columns: repeat(3, 0.8fr);
-    grid-template-rows: repeat(3, 0.8fr);
-    gap: 10px;
-    justify-items: center;
-    align-items: center;
-    width: 25%;
-    height: 25%;
-    background-color: #ffffff2a;
-    width: 100%;
-    height: 400px;
-    padding: 25px;
-    border-radius: 10px;
-}
-
-.BNitem {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.093);
-    border: 1px solid skyblue;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.BNitem:active {
-    transform: translateY(1px);
-}
-
 
 .control-buttons {
     gap: 20px;
