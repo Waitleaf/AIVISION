@@ -28,6 +28,7 @@ button {
     -webkit-appearance: none;
 }
 
+
 .container {
     display: flex;
     justify-content: center;
@@ -136,6 +137,7 @@ button {
 .set .text {
     padding: 20px;
     color: white;
+    margin: 0;
 }
 
 .set button {
