@@ -1,53 +1,3 @@
-//配置 myaxios 
-function myaxios(config) {
-    return new Promise((resolve, reject) => {
-        // 创建一个 XMLHttpRequest 对象
-        const xhr = new XMLHttpRequest();
-
-        // 配置请求方法和URL
-        xhr.open(config.method, config.url);
-
-        // 设置请求头
-        if (config.headers) {
-            Object.keys(config.headers).forEach((key) => {
-                xhr.setRequestHeader(key, config.headers[key]);
-            });
-        }
-
-        // 设置超时时间
-        if (config.timeout) {
-            xhr.timeout = config.timeout;
-        }
-
-        // 设置响应类型
-        if (config.responseType) {
-            xhr.responseType = config.responseType;
-        }
-
-        // 设置超时处理
-        xhr.ontimeout = () => {
-            reject(new Error('Request timed out'));
-        };
-
-        // 设置错误处理
-        xhr.onerror = () => {
-            reject(new Error('Network error'));
-        };
-
-        // 设置请求完成的处理
-        xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(xhr.response);
-            } else {
-                reject(new Error(`Request failed with status ${xhr.status}`));
-            }
-        };
-
-        // 发送请求
-        xhr.send(config.data);
-    });
-}
-
 // 保持原有的脚本部分不变 
 let a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, i = 0, j = 0, k = 0, l = 0, m = 0, n = 0;
 let level = 46
@@ -74,11 +24,11 @@ var image1Path = './picture/eUp.jpg'
 
 let dataFromFrontend = ""; // 全局变量用于存储前端发送的数据
 // 模式选择
-function btnSlect(modeNum, openStartVideoStream = true) {
+function btnSlect(modeNum, openStartVideoStream = true, number = 8767) {
     if (openStartVideoStream) {
         startVideoStream();
     }
-    const socket = new WebSocket("ws://localhost:8767");
+    const socket = new WebSocket(`ws://localhost:${number}`);
     socket.onopen = function () {
         const data = modeNum;
         dataFromFrontend = data; // 将数据存储在全局变量中
@@ -118,7 +68,7 @@ document.getElementById("colourBN").addEventListener("click", function () {
     //样式变化
     document.querySelector('#video_container').style.display = 'none';
     document.querySelector('#colorBNSelect').style.display = 'grid';
-    btnSlect('6', flase)
+    btnSlect('6', flase, 8080);
 });
 
 //历史数据查询---获取图片数据
@@ -661,25 +611,44 @@ function executeMyCode() {
     }
 
     if (dataFromFrontend === "6") {
-        myaxios({
-            //url是本地端口8076
-            url: 'http://localhost:8076/colorBN',
-            method: 'GET',
-            data: {
-                textStatusCode: "start",
-                message: "text",
-                selectCode: "none"
+        console.log("执行色盲模式");
+        window.colorSocket = new WebSocket('ws://localhost:8081');
+        const sendData = {
+            textStatusCode: "START",
+            selectCode: "none"
+        }
 
+        colorSocket.onopen = function () {
+            console.log("已连接到java服务器");
+            colorSocket.send(sendData);  // 这里修正了变量名 (ws -> colorSocket)
+        };
+
+        colorSocket.addEventListener('message', function (event) {
+            const { textStatusCode, imgUrl, items: itemsArr, colorRes } = JSON.parse(event.data);
+            if (textStatusCode === "OVER") {
+                console.log("开始色盲测试");
+                // 测试图片的路径变化
+                const img = document.getElementById('image-container')
+                img.src = imgUrl
+                // 给选项赋予内容
+                const items = document.querySelectorAll('.colorBNSelect .BNitem')
+                for (let item of items) {  // 这里修正了循环方式 (in -> of)
+                    let i = 0
+                    item.innerHTML = itemsArr[i]
+                    i++
+                }
             }
-        }).then(res => {
-            console.log(res?.data?.message)
-        }).catch(err => {
-            console.dir(err)
-        })
+        });
+
+        const colorBNSelect = document.querySelector('.colorBNSelect');
+        colorBNSelect.addEventListener('click', function (e) {
+            if (e.target.classList.contains('BNitem')) {
+                const BNitemText = e.target.innerText;
+                colorSocket.send({ textStatusCode, BNitemText });
+            }
+        });
     }
 }
-
-
 //视频流
 // 开启视频流函数
 function startVideoStream() {
