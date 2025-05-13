@@ -612,7 +612,10 @@ function executeMyCode() {
 
     if (dataFromFrontend === "6") {
         console.log("执行色盲模式");
-        window.colorSocket = new WebSocket('ws://localhost:8081');
+        if (colorSocket) {
+            window.colorSocket = new WebSocket('ws://localhost:8081');
+        }
+
         const sendData = {
             textStatusCode: "START",
             selectCode: "none"
@@ -620,12 +623,12 @@ function executeMyCode() {
 
         colorSocket.onopen = function () {
             console.log("已连接到java服务器");
-            colorSocket.send(sendData);  // 这里修正了变量名 (ws -> colorSocket)
+            colorSocket.send(JSON.stringify(sendData));  // 这里修正了变量名 (ws -> colorSocket)
         };
 
         colorSocket.addEventListener('message', function (event) {
             const { textStatusCode, imgUrl, items: itemsArr, colorRes } = JSON.parse(event.data);
-            if (textStatusCode === "OVER") {
+            if (textStatusCode === "TESTING") {
                 console.log("开始色盲测试");
                 // 测试图片的路径变化
                 const img = document.getElementById('image-container')
@@ -637,6 +640,20 @@ function executeMyCode() {
                     item.innerHTML = itemsArr[i]
                     i++
                 }
+            } else if (textStatusCode === "OVER") {
+                //关闭连接
+                colorSocket.close();
+                // 显示模态框
+                var modal = document.getElementById("myModal");
+                modal.style.display = "block";
+
+                // 修改变量的值
+                pageTitle = "检测完毕，以下是你的的检测结果！";
+                document.getElementById("pageTitle").innerText = pageTitle;
+
+                p = colorRes;
+                document.getElementById("p").innerText = p;
+
             }
         });
 
