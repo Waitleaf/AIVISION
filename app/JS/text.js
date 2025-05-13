@@ -1,3 +1,53 @@
+//配置 myaxios 
+function myaxios(config) {
+    return new Promise((resolve, reject) => {
+        // 创建一个 XMLHttpRequest 对象
+        const xhr = new XMLHttpRequest();
+
+        // 配置请求方法和URL
+        xhr.open(config.method, config.url);
+
+        // 设置请求头
+        if (config.headers) {
+            Object.keys(config.headers).forEach((key) => {
+                xhr.setRequestHeader(key, config.headers[key]);
+            });
+        }
+
+        // 设置超时时间
+        if (config.timeout) {
+            xhr.timeout = config.timeout;
+        }
+
+        // 设置响应类型
+        if (config.responseType) {
+            xhr.responseType = config.responseType;
+        }
+
+        // 设置超时处理
+        xhr.ontimeout = () => {
+            reject(new Error('Request timed out'));
+        };
+
+        // 设置错误处理
+        xhr.onerror = () => {
+            reject(new Error('Network error'));
+        };
+
+        // 设置请求完成的处理
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject(new Error(`Request failed with status ${xhr.status}`));
+            }
+        };
+
+        // 发送请求
+        xhr.send(config.data);
+    });
+}
+
 // 保持原有的脚本部分不变 
 let a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, i = 0, j = 0, k = 0, l = 0, m = 0, n = 0;
 let level = 46
@@ -6,12 +56,10 @@ let wrong_count = 0
 let count = [a, b, c, d, e, f, g, h, i, j, k, l, m, n]
 let flag = ['Right', 'Left', 'Up', 'Down']
 let size = ["730px", "580px", "460px", "360px", "290px", "230px", "180px", "150px", "120px", "90px", "70px", "60px", "50px", "40px"]
-current_size_index = 6
-width = size[current_size_index]
-// console.log(count)
+let current_size_index = 6
+let width = size[current_size_index]
 let randomIndex = '-1'
 
-//弹窗的
 // 声明一个变量并赋值
 var pageTitle = `您的视力值为 ${level / 10}`;
 
@@ -26,91 +74,51 @@ var image1Path = './picture/eUp.jpg'
 
 let dataFromFrontend = ""; // 全局变量用于存储前端发送的数据
 // 模式选择
+function btnSlect(modeNum, openStartVideoStream = true) {
+    if (openStartVideoStream) {
+        startVideoStream();
+    }
+    const socket = new WebSocket("ws://localhost:8767");
+    socket.onopen = function () {
+        const data = modeNum;
+        dataFromFrontend = data; // 将数据存储在全局变量中
+
+        // 在接收到终端响应后再刷新页面
+        socket.onmessage = function (event) {
+            // 处理终端响应
+            console.log("收到终端响应:", event.data);
+            location.reload(); // 刷新页面
+        };
+
+        socket.send(data);
+    };
+}
+
 document.getElementById("leftHand").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        console.log("已连接");
-        const data = "1";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    btnSlect('1')
 });
-
 document.getElementById("rightHand").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "2";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    btnSlect('2')
 });
 document.getElementById("speak").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "3";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    stopVideoStream()
+    // 切换图片
+    const videoImg = document.createElement('img');
+    videoImg.src = './picture-css/speak.png'
+    document.getElementById("video").appendChild(videoImg);
+    btnSlect('3', false);
 });
-
 document.getElementById("head").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "5";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-        socket.send(data);
-    };
+    btnSlect('5')
 });
 document.getElementById("teach").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "4";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    btnSlect('4')
+});
+document.getElementById("colourBN").addEventListener("click", function () {
+    //样式变化
+    document.querySelector('#video_container').style.display = 'none';
+    document.querySelector('#colorBNSelect').style.display = 'grid';
+    btnSlect('6', flase)
 });
 
 //历史数据查询---获取图片数据
@@ -170,20 +178,6 @@ document.getElementById("getHistory").addEventListener("click", function () {
     });
 });
 
-// 结束弹窗按钮
-document.getElementById("done-yes").addEventListener("click", function () {
-    //刷新页面（即也清空了之前的数据）
-    location.reload();
-})
-document.getElementById("done-break").addEventListener("click", function () {
-    //跳转到登录页面
-    location.href = "./login.html";
-})
-
-//网页弹窗
-function set(a) {
-    alert(a)
-}
 
 // 获取按钮元素
 const startButton = document.getElementById("start");
@@ -212,9 +206,7 @@ startButton.addEventListener("click", function () {
 
     // 执行测试代码
     console.log("开始执行测试...");
-    // 这里可以添加你的测试逻辑
 });
-
 
 // 结束测试按钮点击事件
 breakButton.addEventListener("click", function () {
@@ -251,47 +243,6 @@ startButton.addEventListener("click", function () {
 });
 
 // 将 JavaScript 代码包装在一个函数中，以便在点击按钮时调用
-
-const popup = document.querySelector('#popup');
-const closeBtn = document.querySelector('#closePopupBtn');
-const modeButtons = document.querySelector('.mode-buttons');
-
-modeButtons.addEventListener('click', (e) => {
-    const targetBtn = e.target.closest('.triggerBtn');
-    if (!targetBtn) return;
-
-    const modeMap = {
-        teach: '示教',
-        rightHand: '右手',
-        leftHand: '左手',
-        speak: '语音',
-        head: '头部',
-        colourBN: '色盲'
-    };
-
-    const mode = modeMap[targetBtn.id];
-    if (mode) {
-        document.getElementById('text').textContent = `已切换至【${mode}】模式`;
-        popup.classList.add('showing');
-        popup.classList.remove('hiding');
-
-        let timerStarted = false;
-        if (!timerStarted) {
-            setTimeout(() => {
-                popup.classList.remove('showing');
-                popup.classList.add('hiding');
-                timerStarted = false;
-            }, 2000);
-            timerStarted = true;
-        }
-    }
-});
-
-closeBtn.addEventListener('click', () => {
-    popup.classList.remove('showing');
-    popup.classList.add('hiding');
-});
-
 function executeMyCode() {
     console.log("开始执行...");
     if ((dataFromFrontend === "1") || (dataFromFrontend === "2") || (dataFromFrontend === "5")) {
@@ -329,9 +280,7 @@ function executeMyCode() {
             // 在页面中显示图片，这里假设有一个名为 'image-container' 的 div 用于显示图片
             const imageElement = document.getElementById('image-container');
         }
-        // 定时切换图片
-        // setInterval(showImage, 8000);
-        // 初始化显示第一张图片,调用函数
+
         showImage();
         // 获取图片元素
         var imgElement = document.getElementById("image-container");
@@ -426,8 +375,6 @@ function executeMyCode() {
             btn_break.onclick = function () {
                 modal.style.display = "block";
                 pageTitle = "您已提前结束！期待你的下一次使用！";
-                // pageTitle="您的视力值为[4.7]"
-                // 更新 h1 标签的内容，显示新的标题
                 document.getElementById("pageTitle").innerText = pageTitle;
 
                 p = "您未完成视力检测哦！";
@@ -437,9 +384,6 @@ function executeMyCode() {
             //显示level
             if ((current_size_index == 13 && correct_count == 2) || (current_size_index == 0 && correct_count == 2) || (count[current_size_index] == 2)) {
                 console.log("break")
-
-                //结束测试---发送视力数据
-                //获取本地userData里面的username
                 const username = JSON.parse(localStorage.getItem('userData')).username;
                 const data = JSON.stringify({
                     action: 'submitLevel',
@@ -485,8 +429,7 @@ function executeMyCode() {
     if (dataFromFrontend === "3") {
 
         console.log("执行3语音模式");
-        const videoContainer = document.querySelector("#video_container");
-        videoContainer.innerHTML = '';
+
         // 存储图片信息的数组
         const images = [
             { path: './picture/eUp.jpg', index: 0 },
@@ -715,46 +658,67 @@ function executeMyCode() {
                 }
             }
         });
+    }
 
-        function displayModal() {
-            modal.style.display = "block";
+    if (dataFromFrontend === "6") {
+        myaxios({
+            //url是本地端口8076
+            url: 'http://localhost:8076/colorBN',
+            method: 'GET',
+            data: {
+                textStatusCode: "start",
+                message: "text",
+                selectCode: "none"
 
-
-            pageTitle = "您已提前结束！期待你的下一次使用！";
-
-            document.getElementById("pageTitle").innerText = pageTitle;
-
-
-            p = "您未完成是视力检测哦！";
-            document.getElementById("p").innerText = p;
-            function closeModal() {
-                modal.style.display = "none";
-                location.reload();
             }
-
-            span.onclick = closeModal;
-            window.onclick = function (event) {
-                if (event.target == modal) {
-                    closeModal();
-                }
-            }
-        }
+        }).then(res => {
+            console.log(res?.data?.message)
+        }).catch(err => {
+            console.dir(err)
+        })
     }
 }
 
 
+//视频流
+// 开启视频流函数
+function startVideoStream() {
+    // 获取视频容器元素
+    const videoContainer = document.getElementById('video');
 
+    // 创建WebSocket连接（需确保全局可用）
+    window.websocket = new WebSocket('ws://localhost:8766');
 
+    // 接收视频帧数据
+    websocket.onmessage = function (event) {
+        const img = document.createElement('img');
+        img.src = 'data:image/jpeg;base64,' + event.data;
+        videoContainer.innerHTML = '';
+        videoContainer.appendChild(img);
+    };
 
-const videoContainer = document.getElementById('video');
-const websocket = new WebSocket('ws://localhost:8766');
-let intervalId;
+    // 连接异常处理
+    websocket.onerror = function (error) {
+        console.error('视频流连接异常:', error);
+        alert('视频流连接异常，请检查服务状态');
+    };
+}
 
-websocket.onmessage = function (event) {
-    const img = document.createElement('img');
-    img.src = 'data:image/jpeg;base64,' + event.data;
+// 关闭视频流函数
+function stopVideoStream() {
+    // 安全检查
+    if (window.websocket) {
+        // 关闭连接
+        window.websocket.close();
+        // 清除引用
+        window.websocket = null;
+    }
+    // 清空视频容器
+    const videoContainer = document.getElementById('video');
     videoContainer.innerHTML = '';
-    videoContainer.appendChild(img);
+}
 
-};
-
+//页面啊加载后打开视频流
+window.onload = function () {
+    startVideoStream();
+}
