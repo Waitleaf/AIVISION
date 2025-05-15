@@ -27,7 +27,7 @@ async def handle_connection(websocket):
                     conn = await asyncmy.connect(
                         host='localhost', #指数据库服务器地址，localhost为本地
                         user='root', #默认用户名
-                        password='wait0612', #安装时设置的密码
+                        password='123456', #安装时设置的密码
                         db='AIVISION' #数据库名
                     )
 
@@ -60,7 +60,7 @@ async def handle_connection(websocket):
                     conn = await asyncmy.connect(
                         host='localhost',
                         user='root',
-                        password='wait0612',
+                        password='123456',
                         db='AIVISION'
                     )
 
@@ -93,7 +93,7 @@ async def handle_connection(websocket):
                     conn = await asyncmy.connect(
                         host='localhost',
                         user='root',
-                        password='wait0612',
+                        password='123456',
                         db='AIVISION'
                     )
                     

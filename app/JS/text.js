@@ -68,7 +68,8 @@ document.getElementById("colourBN").addEventListener("click", function () {
     //样式变化
     document.querySelector('#video_container').style.display = 'none';
     document.querySelector('#colorBNSelect').style.display = 'grid';
-    btnSlect('6', flase, 8080);
+    const data = "6";
+    dataFromFrontend = data;
 });
 
 //历史数据查询---获取图片数据
@@ -612,7 +613,7 @@ function executeMyCode() {
 
     if (dataFromFrontend === "6") {
         console.log("执行色盲模式");
-        if (colorSocket) {
+        if (!window.colorSocket) {
             window.colorSocket = new WebSocket('ws://localhost:8081');
         }
 
@@ -627,6 +628,7 @@ function executeMyCode() {
         };
 
         colorSocket.addEventListener('message', function (event) {
+            console.log("colorSocket接收到消息:", event.data);
             const { textStatusCode, imgUrl, items: itemsArr, colorRes } = JSON.parse(event.data);
             if (textStatusCode === "TESTING") {
                 console.log("开始色盲测试");
@@ -661,7 +663,8 @@ function executeMyCode() {
         colorBNSelect.addEventListener('click', function (e) {
             if (e.target.classList.contains('BNitem')) {
                 const BNitemText = e.target.innerText;
-                colorSocket.send({ textStatusCode, BNitemText });
+                const textStatusCode = "TESTING"
+                colorSocket.send(JSON.stringify({ textStatusCode, BNitemText }));
             }
         });
     }
@@ -704,7 +707,7 @@ function stopVideoStream() {
     videoContainer.innerHTML = '';
 }
 
-//页面啊加载后打开视频流
+//页面加载后打开视频流
 window.onload = function () {
     startVideoStream();
 }
