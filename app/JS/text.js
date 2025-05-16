@@ -68,15 +68,14 @@ document.getElementById("colourBN").addEventListener("click", function () {
     //样式变化
     document.querySelector('#video_container').style.display = 'none';
     document.querySelector('#colorBNSelect').style.display = 'grid';
-    const data = "6";
-    dataFromFrontend = data;
+    dataFromFrontend = "6";
 });
 
 //历史数据查询---获取图片数据
 function getHistory(picture) {
     // 创建 WebSocket 连接
     const username = JSON.parse(localStorage.getItem('userData')).username;
-    const wsGetH = new WebSocket('ws://localhost:8770');
+    window.wsGetH = new WebSocket('ws://localhost:8770');
 
     // 连接建立后发送用户数据
     wsGetH.onopen = () => {
@@ -96,7 +95,7 @@ function getHistory(picture) {
             // const picture = document.getElementById('vision-chart');
             picture.src = 'data:image/jpeg;base64,' + response.imgData;
             picture.style.display = 'block';
-        } else {
+        } else if (response.Back === '0') {
             // 显示错误信息
             const errorMessage = document.getElementById('error-text');
             errorMessage.innerHTML = '未获取到数据，请稍后再试。';
@@ -126,6 +125,29 @@ document.getElementById("getHistory").addEventListener("click", function () {
     // 使用唯一 ID 选择确认按钮
     historyModal.querySelector("button").addEventListener('click', () => {
         historyModal.style.display = 'none';
+    });
+
+    //当点击预测视力后，展示问卷
+    document.querySelector("#predictingVisualAcuity").addEventListener("click", function () {
+        wsGetH.send(JSON.stringify({
+            action: 'getWenjuan',
+            username: username,
+        }))
+        const wenjuan = document.querySelector('.wenjuan')
+        const img = document.querySelector('#vision-chart')
+
+        // wsGetH.addEventListener('message', (event) => {
+        //     const { Back } = JSON.parse(event.data)
+        //     //显示问卷
+        //     if (Back === '1') {
+        //         img.style.display = 'none';
+        //         wenjuan.style.display = 'block';
+        //     }
+        // })
+
+        img.style.display = 'none';
+        wenjuan.style.display = 'block';
+
     });
 });
 
@@ -622,27 +644,23 @@ function executeMyCode() {
             selectCode: "none"
         }
 
+        //第一次连接发送消息到后端
         colorSocket.onopen = function () {
             console.log("已连接到java服务器");
             colorSocket.send(JSON.stringify(sendData));  // 这里修正了变量名 (ws -> colorSocket)
         };
 
+        //当后端发送信息时候更新item和图片路径
         colorSocket.addEventListener('message', function (event) {
             console.log("colorSocket接收到消息:", event.data);
-            const { textStatusCode, imgUrl, items: itemsArr, colorRes } = JSON.parse(event.data);
+            const { textStatusCode, imgUrl, colorRes } = JSON.parse(event.data);
             if (textStatusCode === "TESTING") {
                 console.log("开始色盲测试");
                 // 测试图片的路径变化
                 const img = document.getElementById('image-container')
                 img.src = imgUrl
-                // 给选项赋予内容
-                const items = document.querySelectorAll('.colorBNSelect .BNitem')
-                for (let item of items) {  // 这里修正了循环方式 (in -> of)
-                    let i = 0
-                    item.innerHTML = itemsArr[i]
-                    i++
-                }
             } else if (textStatusCode === "OVER") {
+                console.log("色盲检测结束");
                 //关闭连接
                 colorSocket.close();
                 // 显示模态框
@@ -659,14 +677,43 @@ function executeMyCode() {
             }
         });
 
-        const colorBNSelect = document.querySelector('.colorBNSelect');
-        colorBNSelect.addEventListener('click', function (e) {
-            if (e.target.classList.contains('BNitem')) {
-                const BNitemText = e.target.innerText;
-                const textStatusCode = "TESTING"
-                colorSocket.send(JSON.stringify({ textStatusCode, BNitemText }));
-            }
+        let showStr = '';
+
+        function updateShowInput() {
+            const showInput = document.querySelector('.showInput');
+            showInput.innerHTML = showStr || '请输入内容';
+            showInput.style.color = "#000"; // 确保文字可见（可选）
+        }
+
+        // 处理数字和"不知道"按钮
+        document.querySelectorAll('.BNitem').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const value = btn.textContent;
+
+                if (value === '不知道') {
+                    showStr = '不知道';
+                    console.log('不知道');
+                } else {
+                    // 如果当前是"不知道"状态或超过长度则重置
+                    if (showStr === '不知道' || showStr.length >= 4) {
+                        showStr = '';
+                    }
+                    showStr += value;
+                }
+
+                updateShowInput();
+            });
         });
+
+        // 提交按钮
+        document.getElementById('BNitemSubmit').addEventListener('click', () => {
+            console.log('提交内容:', showStr);
+            colorSocket.send(JSON.stringify({
+                textStatusCode: "TESTING",
+                text: showStr
+            }))
+        });
+
     }
 }
 //视频流
@@ -708,6 +755,6 @@ function stopVideoStream() {
 }
 
 //页面加载后打开视频流
-window.onload = function () {
-    startVideoStream();
-}
+// window.onload = function () {
+//     startVideoStream();
+// }
