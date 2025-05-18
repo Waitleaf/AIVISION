@@ -420,6 +420,85 @@ button:hover {
     color: rgb(255, 255, 255);
 }
 
+.wenjuan {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2列布局 */
+    gap: 20px;
+    /* 网格间距 */
+    width: 90%;
+    margin: 20px auto;
+    padding: 15px;
+    max-height: 60vh;
+    overflow-y: auto;
+    /* 内容过多时显示滚动条 */
+}
+
+.wenjuan::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.3);
+    /* 半透明白色轨道 */
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.wenjuan::-webkit-scrollbar {
+    width: 10px;
+    /* 滚动条的宽度 */
+}
+
+.wenjuan::-webkit-scrollbar-thumb {
+    background: #575555;
+    /* 滚动条滑块的颜色 */
+    border-radius: 4px;
+}
+
+.wenjuan::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    /* 滚动条滑块悬停时的颜色 */
+}
+
+.item {
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2px;
+}
+
+.item label {
+    font-size: 14px;
+    color: #2d2d2d;
+    font-weight: 500;
+}
+
+.item select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.503);
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.item select:focus {
+    outline: none;
+    border-color: #7a5cfa;
+    box-shadow: 0 0 0 2px rgba(122, 92, 250, 0.2);
+}
+
+.item input[type="text"] {
+    background: rgba(255, 255, 255, 0.503);
+    border: 0;
+    border-radius: 6px;
+    height: 30px;
+}
+
+
+
 /* 弹窗主样式 */
 .set {
     width: 400px;

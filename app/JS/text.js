@@ -126,29 +126,58 @@ document.getElementById("getHistory").addEventListener("click", function () {
     historyModal.querySelector("button").addEventListener('click', () => {
         historyModal.style.display = 'none';
     });
+});
 
-    //当点击预测视力后，展示问卷
-    document.querySelector("#predictingVisualAcuity").addEventListener("click", function () {
+//当点击预测视力后，展示问卷
+document.querySelector("#predictingVisualAcuity").addEventListener("click", function () {
+    const wenjuan = document.querySelector('.wenjuan')
+    const img = document.querySelector('#vision-chart')
+    img.style.display = 'none';
+    wenjuan.style.display = 'block';
+    document.querySelector('.error-text').style.display = 'none'
+    //get btn obj
+    const confirm = document.querySelector('#confirm')
+    const predictingVisualAcuity = document.querySelector('#predictingVisualAcuity')
+    const submitBtn = document.querySelector('#predictingVisualAcuity-submit')
+    confirm.style.display = 'none'
+    predictingVisualAcuity.style.display = 'none'
+    submitBtn.style.display = 'block'
+    // wsGetH.addEventListener('message', (event) => {
+    //     const { Back } = JSON.parse(event.data)
+    //     //显示问卷
+    //     if (Back === '1') {
+    //         img.style.display = 'none';
+    //         wenjuan.style.display = 'block';
+    //     }
+    // })
+    submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        function getFormData() {
+            const formData = {};
+            // 3. 将表单元素集合转换为数组（form.elements 是类数组对象）
+            const allFields = Array.from(wenjuan.elements);
+            // 4. 使用 forEach 遍历每个元素
+            allFields.forEach(field => {
+                // 直接保存元素的值（保持原始字符串格式）
+                // 在保存值的代码块中添加：
+                if (field.name === 'age') {
+                    formData[field.name] = Number(field.value); // 转换为数字
+                } else {
+                    formData[field.name] = field.value;
+                }
+            });
+            // 5. 返回最终数据对象
+            return formData;
+        }
+        const formData = getFormData();
+        //发送数据------先打印
+        console.log('表单数据:', formData);
         wsGetH.send(JSON.stringify({
-            action: 'getWenjuan',
-            username: username,
+            action: 'predict',
+            username: localStorage.getItem('username'),
+            formData: formData
         }))
-        const wenjuan = document.querySelector('.wenjuan')
-        const img = document.querySelector('#vision-chart')
-
-        // wsGetH.addEventListener('message', (event) => {
-        //     const { Back } = JSON.parse(event.data)
-        //     //显示问卷
-        //     if (Back === '1') {
-        //         img.style.display = 'none';
-        //         wenjuan.style.display = 'block';
-        //     }
-        // })
-
-        img.style.display = 'none';
-        wenjuan.style.display = 'block';
-
-    });
+    })
 });
 
 
@@ -685,7 +714,7 @@ function executeMyCode() {
             showInput.style.color = "#000"; // 确保文字可见（可选）
         }
 
-        // 处理数字和"不知道"按钮
+        // 处理数字和"不知道"按钮------后期可以考虑修改成事件委托
         document.querySelectorAll('.BNitem').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const value = btn.textContent;
