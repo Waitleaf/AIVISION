@@ -142,16 +142,9 @@ document.querySelector("#predictingVisualAcuity").addEventListener("click", func
     confirm.style.display = 'none'
     predictingVisualAcuity.style.display = 'none'
     submitBtn.style.display = 'block'
-    // wsGetH.addEventListener('message', (event) => {
-    //     const { Back } = JSON.parse(event.data)
-    //     //显示问卷
-    //     if (Back === '1') {
-    //         img.style.display = 'none';
-    //         wenjuan.style.display = 'block';
-    //     }
-    // })
     submitBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        //获取表达的值
         function getFormData() {
             const formData = {};
             // 3. 将表单元素集合转换为数组（form.elements 是类数组对象）
@@ -170,8 +163,6 @@ document.querySelector("#predictingVisualAcuity").addEventListener("click", func
             return formData;
         }
         const formData = getFormData();
-        //发送数据------先打印
-
         const message = JSON.stringify({
             action: 'predict',
             username: localStorage.getItem('username'),
@@ -179,6 +170,17 @@ document.querySelector("#predictingVisualAcuity").addEventListener("click", func
         })
         wsGetH.send(message)
         console.log('表单数据:', message);
+        wsGetH.addEventListener('message', (event) => {
+            console.log("调查问卷接收", event)
+            const response = JSON.parse(event.data);
+            const { Back, imgData } = response;
+            if (Back === '3') {
+                // 显示图片
+                // const picture = document.getElementById('vision-chart');
+                picture.src = 'data:image/jpeg;base64,' + imgData;
+                picture.style.display = 'block';
+            }
+        })
     })
 });
 
