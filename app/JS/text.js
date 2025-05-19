@@ -6,12 +6,10 @@ let wrong_count = 0
 let count = [a, b, c, d, e, f, g, h, i, j, k, l, m, n]
 let flag = ['Right', 'Left', 'Up', 'Down']
 let size = ["730px", "580px", "460px", "360px", "290px", "230px", "180px", "150px", "120px", "90px", "70px", "60px", "50px", "40px"]
-current_size_index = 6
-width = size[current_size_index]
-// console.log(count)
+let current_size_index = 6
+let width = size[current_size_index]
 let randomIndex = '-1'
 
-//弹窗的
 // 声明一个变量并赋值
 var pageTitle = `您的视力值为 ${level / 10}`;
 
@@ -26,98 +24,58 @@ var image1Path = './picture/eUp.jpg'
 
 let dataFromFrontend = ""; // 全局变量用于存储前端发送的数据
 // 模式选择
+function btnSlect(modeNum, openStartVideoStream = true, number = 8767) {
+    if (openStartVideoStream) {
+        startVideoStream();
+    }
+    const socket = new WebSocket(`ws://localhost:${number}`);
+    socket.onopen = function () {
+        const data = modeNum;
+        dataFromFrontend = data; // 将数据存储在全局变量中
+
+        // 在接收到终端响应后再刷新页面
+        socket.onmessage = function (event) {
+            // 处理终端响应
+            console.log("收到终端响应:", event.data);
+            location.reload(); // 刷新页面
+        };
+
+        socket.send(data);
+    };
+}
+
 document.getElementById("leftHand").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        console.log("已连接");
-        const data = "1";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    btnSlect('1')
 });
-
 document.getElementById("rightHand").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "2";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    btnSlect('2')
 });
 document.getElementById("speak").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "3";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    stopVideoStream()
+    // 切换图片
+    const videoImg = document.createElement('img');
+    videoImg.src = './picture-css/speak.png'
+    document.getElementById("video").appendChild(videoImg);
+    btnSlect('3', false);
 });
-
 document.getElementById("head").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "5";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-        socket.send(data);
-    };
+    btnSlect('5')
 });
 document.getElementById("teach").addEventListener("click", function () {
-    const socket = new WebSocket("ws://localhost:8767");
-    socket.onopen = function () {
-        //发送参数给终端
-        console.log("已连接");
-        const data = "4";
-        dataFromFrontend = data; // 将数据存储在全局变量中
-        // 在接收到终端响应后再刷新页面
-        socket.onmessage = function (event) {
-            // 处理终端响应
-            console.log("收到终端响应:", event.data);
-            location.reload(); // 刷新页面
-        };
-
-        socket.send(data);
-    };
+    btnSlect('4')
+});
+document.getElementById("colourBN").addEventListener("click", function () {
+    //样式变化
+    document.querySelector('#video_container').style.display = 'none';
+    document.querySelector('#colorBNSelect').style.display = 'grid';
+    dataFromFrontend = "6";
 });
 
 //历史数据查询---获取图片数据
 function getHistory(picture) {
     // 创建 WebSocket 连接
     const username = JSON.parse(localStorage.getItem('userData')).username;
-    const wsGetH = new WebSocket('ws://localhost:8770');
+    window.wsGetH = new WebSocket('ws://localhost:8770');
 
     // 连接建立后发送用户数据
     wsGetH.onopen = () => {
@@ -137,7 +95,7 @@ function getHistory(picture) {
             // const picture = document.getElementById('vision-chart');
             picture.src = 'data:image/jpeg;base64,' + response.imgData;
             picture.style.display = 'block';
-        } else {
+        } else if (response.Back === '0') {
             // 显示错误信息
             const errorMessage = document.getElementById('error-text');
             errorMessage.innerHTML = '未获取到数据，请稍后再试。';
@@ -168,22 +126,31 @@ document.getElementById("getHistory").addEventListener("click", function () {
     historyModal.querySelector("button").addEventListener('click', () => {
         historyModal.style.display = 'none';
     });
+
+    //当点击预测视力后，展示问卷
+    document.querySelector("#predictingVisualAcuity").addEventListener("click", function () {
+        wsGetH.send(JSON.stringify({
+            action: 'getWenjuan',
+            username: username,
+        }))
+        const wenjuan = document.querySelector('.wenjuan')
+        const img = document.querySelector('#vision-chart')
+
+        // wsGetH.addEventListener('message', (event) => {
+        //     const { Back } = JSON.parse(event.data)
+        //     //显示问卷
+        //     if (Back === '1') {
+        //         img.style.display = 'none';
+        //         wenjuan.style.display = 'block';
+        //     }
+        // })
+
+        img.style.display = 'none';
+        wenjuan.style.display = 'block';
+
+    });
 });
 
-// 结束弹窗按钮
-document.getElementById("done-yes").addEventListener("click", function () {
-    //刷新页面（即也清空了之前的数据）
-    location.reload();
-})
-document.getElementById("done-break").addEventListener("click", function () {
-    //跳转到登录页面
-    location.href = "./login.html";
-})
-
-//网页弹窗
-function set(a) {
-    alert(a)
-}
 
 // 获取按钮元素
 const startButton = document.getElementById("start");
@@ -212,9 +179,7 @@ startButton.addEventListener("click", function () {
 
     // 执行测试代码
     console.log("开始执行测试...");
-    // 这里可以添加你的测试逻辑
 });
-
 
 // 结束测试按钮点击事件
 breakButton.addEventListener("click", function () {
@@ -251,47 +216,6 @@ startButton.addEventListener("click", function () {
 });
 
 // 将 JavaScript 代码包装在一个函数中，以便在点击按钮时调用
-
-const popup = document.querySelector('#popup');
-const closeBtn = document.querySelector('#closePopupBtn');
-const modeButtons = document.querySelector('.mode-buttons');
-
-modeButtons.addEventListener('click', (e) => {
-    const targetBtn = e.target.closest('.triggerBtn');
-    if (!targetBtn) return;
-
-    const modeMap = {
-        teach: '示教',
-        rightHand: '右手',
-        leftHand: '左手',
-        speak: '语音',
-        head: '头部',
-        colourBN: '色盲'
-    };
-
-    const mode = modeMap[targetBtn.id];
-    if (mode) {
-        document.getElementById('text').textContent = `已切换至【${mode}】模式`;
-        popup.classList.add('showing');
-        popup.classList.remove('hiding');
-
-        let timerStarted = false;
-        if (!timerStarted) {
-            setTimeout(() => {
-                popup.classList.remove('showing');
-                popup.classList.add('hiding');
-                timerStarted = false;
-            }, 2000);
-            timerStarted = true;
-        }
-    }
-});
-
-closeBtn.addEventListener('click', () => {
-    popup.classList.remove('showing');
-    popup.classList.add('hiding');
-});
-
 function executeMyCode() {
     console.log("开始执行...");
     if ((dataFromFrontend === "1") || (dataFromFrontend === "2") || (dataFromFrontend === "5")) {
@@ -329,9 +253,7 @@ function executeMyCode() {
             // 在页面中显示图片，这里假设有一个名为 'image-container' 的 div 用于显示图片
             const imageElement = document.getElementById('image-container');
         }
-        // 定时切换图片
-        // setInterval(showImage, 8000);
-        // 初始化显示第一张图片,调用函数
+
         showImage();
         // 获取图片元素
         var imgElement = document.getElementById("image-container");
@@ -426,8 +348,6 @@ function executeMyCode() {
             btn_break.onclick = function () {
                 modal.style.display = "block";
                 pageTitle = "您已提前结束！期待你的下一次使用！";
-                // pageTitle="您的视力值为[4.7]"
-                // 更新 h1 标签的内容，显示新的标题
                 document.getElementById("pageTitle").innerText = pageTitle;
 
                 p = "您未完成视力检测哦！";
@@ -437,9 +357,6 @@ function executeMyCode() {
             //显示level
             if ((current_size_index == 13 && correct_count == 2) || (current_size_index == 0 && correct_count == 2) || (count[current_size_index] == 2)) {
                 console.log("break")
-
-                //结束测试---发送视力数据
-                //获取本地userData里面的username
                 const username = JSON.parse(localStorage.getItem('userData')).username;
                 const data = JSON.stringify({
                     action: 'submitLevel',
@@ -485,8 +402,7 @@ function executeMyCode() {
     if (dataFromFrontend === "3") {
 
         console.log("执行3语音模式");
-        const videoContainer = document.querySelector("#video_container");
-        videoContainer.innerHTML = '';
+
         // 存储图片信息的数组
         const images = [
             { path: './picture/eUp.jpg', index: 0 },
@@ -715,46 +631,130 @@ function executeMyCode() {
                 }
             }
         });
+    }
 
-        function displayModal() {
-            modal.style.display = "block";
-
-
-            pageTitle = "您已提前结束！期待你的下一次使用！";
-
-            document.getElementById("pageTitle").innerText = pageTitle;
-
-
-            p = "您未完成是视力检测哦！";
-            document.getElementById("p").innerText = p;
-            function closeModal() {
-                modal.style.display = "none";
-                location.reload();
-            }
-
-            span.onclick = closeModal;
-            window.onclick = function (event) {
-                if (event.target == modal) {
-                    closeModal();
-                }
-            }
+    if (dataFromFrontend === "6") {
+        console.log("执行色盲模式");
+        if (!window.colorSocket) {
+            window.colorSocket = new WebSocket('ws://localhost:8081');
         }
+
+        const sendData = {
+            textStatusCode: "START",
+            selectCode: "none"
+        }
+
+        //第一次连接发送消息到后端
+        colorSocket.onopen = function () {
+            console.log("已连接到java服务器");
+            colorSocket.send(JSON.stringify(sendData));  // 这里修正了变量名 (ws -> colorSocket)
+        };
+
+        //当后端发送信息时候更新item和图片路径
+        colorSocket.addEventListener('message', function (event) {
+            console.log("colorSocket接收到消息:", event.data);
+            const { textStatusCode, imgUrl, colorRes } = JSON.parse(event.data);
+            if (textStatusCode === "TESTING") {
+                console.log("开始色盲测试");
+                // 测试图片的路径变化
+                const img = document.getElementById('image-container')
+                img.src = imgUrl
+            } else if (textStatusCode === "OVER") {
+                console.log("色盲检测结束");
+                //关闭连接
+                colorSocket.close();
+                // 显示模态框
+                var modal = document.getElementById("myModal");
+                modal.style.display = "block";
+
+                // 修改变量的值
+                pageTitle = "检测完毕，以下是你的的检测结果！";
+                document.getElementById("pageTitle").innerText = pageTitle;
+
+                p = colorRes;
+                document.getElementById("p").innerText = p;
+
+            }
+        });
+
+        let showStr = '';
+
+        function updateShowInput() {
+            const showInput = document.querySelector('.showInput');
+            showInput.innerHTML = showStr || '请输入内容';
+            showInput.style.color = "#000"; // 确保文字可见（可选）
+        }
+
+        // 处理数字和"不知道"按钮
+        document.querySelectorAll('.BNitem').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const value = btn.textContent;
+
+                if (value === '不知道') {
+                    showStr = '不知道';
+                    console.log('不知道');
+                } else {
+                    // 如果当前是"不知道"状态或超过长度则重置
+                    if (showStr === '不知道' || showStr.length >= 4) {
+                        showStr = '';
+                    }
+                    showStr += value;
+                }
+
+                updateShowInput();
+            });
+        });
+
+        // 提交按钮
+        document.getElementById('BNitemSubmit').addEventListener('click', () => {
+            console.log('提交内容:', showStr);
+            colorSocket.send(JSON.stringify({
+                textStatusCode: "TESTING",
+                text: showStr
+            }))
+        });
+
     }
 }
+//视频流
+// 开启视频流函数
+function startVideoStream() {
+    // 获取视频容器元素
+    const videoContainer = document.getElementById('video');
 
+    // 创建WebSocket连接（需确保全局可用）
+    window.websocket = new WebSocket('ws://localhost:8766');
 
+    // 接收视频帧数据
+    websocket.onmessage = function (event) {
+        const img = document.createElement('img');
+        img.src = 'data:image/jpeg;base64,' + event.data;
+        videoContainer.innerHTML = '';
+        videoContainer.appendChild(img);
+    };
 
+    // 连接异常处理
+    websocket.onerror = function (error) {
+        console.error('视频流连接异常:', error);
+        alert('视频流连接异常，请检查服务状态');
+    };
+}
 
-
-const videoContainer = document.getElementById('video');
-const websocket = new WebSocket('ws://localhost:8766');
-let intervalId;
-
-websocket.onmessage = function (event) {
-    const img = document.createElement('img');
-    img.src = 'data:image/jpeg;base64,' + event.data;
+// 关闭视频流函数
+function stopVideoStream() {
+    // 安全检查
+    if (window.websocket) {
+        // 关闭连接
+        window.websocket.close();
+        // 清除引用
+        window.websocket = null;
+    }
+    // 清空视频容器
+    const videoContainer = document.getElementById('video');
     videoContainer.innerHTML = '';
-    videoContainer.appendChild(img);
+}
 
-};
-
+//页面加载后打开视频流
+// window.onload = function () {
+//     startVideoStream();
+// }

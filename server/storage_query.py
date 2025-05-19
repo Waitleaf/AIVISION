@@ -35,7 +35,7 @@ async def storage_connection(websocket):
                     conn = await asyncmy.connect(
                         host='localhost',  # 数据库服务器地址
                         user='root',      # 数据库用户名
-                        password='wait0612',  # 数据库密码
+                        password='123456',  # 数据库密码
                         db='AIVISIONDATATEST'     # 数据库名
                     )
 
@@ -120,7 +120,7 @@ async def storage_connection(websocket):
                     conn = await asyncmy.connect(
                         host='localhost',
                         user='root',
-                        password='wait0612',
+                        password='123456',
                         db='AIVISIONDATATEST'
                     )
 

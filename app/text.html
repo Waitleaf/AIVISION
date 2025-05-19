@@ -25,8 +25,26 @@
 
                 <!-- 视频显示 -->
                 <div id="video_container">
-                    <div id="del"></div>
                     <div id="video"></div>
+                </div>
+
+                <!-- 色盲测试选择按钮区域 -->
+                <div id="colorBNSelect" class="colorBNSelect" style="display: none;">
+                    <div class="showInput">请输入内容</div>
+                    <div class="btn">
+                        <div class="BNitem">1</div>
+                        <div class="BNitem">2</div>
+                        <div class="BNitem">3</div>
+                        <div class="BNitem">4</div>
+                        <div class="BNitem">5</div>
+                        <div class="BNitem">6</div>
+                        <div class="BNitem">7</div>
+                        <div class="BNitem">8</div>
+                        <div class="BNitem">9</div>
+                        <div class="BNitem">0</div>
+                        <div class="BNitem">不知道</div>
+                        <div id="BNitemSubmit">提交</div>
+                    </div>
                 </div>
 
                 <!-- 控制按钮 -->
@@ -96,8 +114,19 @@
                     <h1>历史数据查询</h1>
                     <img src="#" class="vision-chart" id="vision-chart" alt="视力变化曲线">
                     <div id="error-text" class="error-text"></div>
+                    <form action="" class="wenjuan" style="display: none;">
+                        <div class="item">
+                            <label for="question1">问题1：你最喜欢的季节是什么？</label>
+                            <select name="question1">
+                                <option value="a">a. 春季</option>
+                                <option value="b">b. 夏季</option>
+                                <option value="c">c. 秋季</option>
+                            </select>
+                        </div>
+                    </form>
                     <div class="modal-buttons">
                         <button class="confirm-btn">确认</button>
+                        <button class="confirm-btn" id="predictingVisualAcuity">预测视力</button>
                     </div>
                 </div>
             </div>
@@ -106,12 +135,12 @@
 
     <div class="set" id="popup">
         <div class="text">
-            <p id="text">这是文本</p>
+            <p id="text"></p>
             <button id="closePopupBtn">关闭</button>
         </div>
     </div>
 
-
+    <script src="./JS/popup.js"></script>
     <script src="./JS/text.js"></script>
 
 </body>
