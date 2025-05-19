@@ -126,29 +126,62 @@ document.getElementById("getHistory").addEventListener("click", function () {
     historyModal.querySelector("button").addEventListener('click', () => {
         historyModal.style.display = 'none';
     });
+});
 
-    //当点击预测视力后，展示问卷
-    document.querySelector("#predictingVisualAcuity").addEventListener("click", function () {
-        wsGetH.send(JSON.stringify({
-            action: 'getWenjuan',
-            username: username,
-        }))
-        const wenjuan = document.querySelector('.wenjuan')
-        const img = document.querySelector('#vision-chart')
-
-        // wsGetH.addEventListener('message', (event) => {
-        //     const { Back } = JSON.parse(event.data)
-        //     //显示问卷
-        //     if (Back === '1') {
-        //         img.style.display = 'none';
-        //         wenjuan.style.display = 'block';
-        //     }
-        // })
-
-        img.style.display = 'none';
-        wenjuan.style.display = 'block';
-
-    });
+//当点击预测视力后，展示问卷
+document.querySelector("#predictingVisualAcuity").addEventListener("click", function () {
+    const wenjuan = document.querySelector('.wenjuan')
+    const img = document.querySelector('#vision-chart')
+    img.style.display = 'none';
+    wenjuan.style.display = 'block';
+    document.querySelector('.error-text').style.display = 'none'
+    //get btn obj
+    const confirm = document.querySelector('#confirm')
+    const predictingVisualAcuity = document.querySelector('#predictingVisualAcuity')
+    const submitBtn = document.querySelector('#predictingVisualAcuity-submit')
+    confirm.style.display = 'none'
+    predictingVisualAcuity.style.display = 'none'
+    submitBtn.style.display = 'block'
+    submitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        //获取表达的值
+        function getFormData() {
+            const formData = {};
+            // 3. 将表单元素集合转换为数组（form.elements 是类数组对象）
+            const allFields = Array.from(wenjuan.elements);
+            // 4. 使用 forEach 遍历每个元素
+            allFields.forEach(field => {
+                // 直接保存元素的值（保持原始字符串格式）
+                // 在保存值的代码块中添加：
+                if (field.name === 'age') {
+                    formData[field.name] = Number(field.value); // 转换为数字
+                } else {
+                    formData[field.name] = field.value;
+                }
+            });
+            // 5. 返回最终数据对象
+            return formData;
+        }
+        const formData = getFormData();
+        const message = JSON.stringify({
+            action: 'predict',
+            username: localStorage.getItem('username'),
+            formData: formData
+        })
+        wsGetH.send(message)
+        console.log('表单数据:', message);
+        wsGetH.addEventListener('message', (event) => {
+            console.log("调查问卷接收", event)
+            const response = JSON.parse(event.data);
+            const { Back, imgData } = response;
+            if (Back === '3') {
+                // 显示图片
+                // const picture = document.getElementById('vision-chart');
+                picture.src = 'data:image/jpeg;base64,' + imgData;
+                picture.style.display = 'block';
+            }
+        })
+    })
 });
 
 
@@ -636,7 +669,7 @@ function executeMyCode() {
     if (dataFromFrontend === "6") {
         console.log("执行色盲模式");
         if (!window.colorSocket) {
-            window.colorSocket = new WebSocket('ws://localhost:8081');
+            window.colorSocket = new WebSocket('ws://localhost:8080/websocket');
         }
 
         const sendData = {
@@ -653,8 +686,8 @@ function executeMyCode() {
         //当后端发送信息时候更新item和图片路径
         colorSocket.addEventListener('message', function (event) {
             console.log("colorSocket接收到消息:", event.data);
-            const { textStatusCode, imgUrl, colorRes } = JSON.parse(event.data);
-            if (textStatusCode === "TESTING") {
+            const { textStatusCode, Imgname: imgUrl, colorRes } = JSON.parse(event.data);
+            if (textStatusCode === "START") {
                 console.log("开始色盲测试");
                 // 测试图片的路径变化
                 const img = document.getElementById('image-container')
@@ -685,7 +718,7 @@ function executeMyCode() {
             showInput.style.color = "#000"; // 确保文字可见（可选）
         }
 
-        // 处理数字和"不知道"按钮
+        // 处理数字和"不知道"按钮------后期可以考虑修改成事件委托
         document.querySelectorAll('.BNitem').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const value = btn.textContent;
@@ -710,7 +743,7 @@ function executeMyCode() {
             console.log('提交内容:', showStr);
             colorSocket.send(JSON.stringify({
                 textStatusCode: "TESTING",
-                text: showStr
+                anwser: showStr
             }))
         });
 

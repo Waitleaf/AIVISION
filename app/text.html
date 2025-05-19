@@ -114,19 +114,60 @@
                     <h1>历史数据查询</h1>
                     <img src="#" class="vision-chart" id="vision-chart" alt="视力变化曲线">
                     <div id="error-text" class="error-text"></div>
+                    <!-- style="display: block"; -->
                     <form action="" class="wenjuan" style="display: none;">
                         <div class="item">
-                            <label for="question1">问题1：你最喜欢的季节是什么？</label>
-                            <select name="question1">
-                                <option value="a">a. 春季</option>
-                                <option value="b">b. 夏季</option>
-                                <option value="c">c. 秋季</option>
+                            <label for="question1">1、你每天的阅读时长是多久</label>
+                            <select name="reading">
+                                <option value="c1">0-1小时</option>
+                                <option value="c2">1-4小时</option>
+                                <option value="c3">4小时以上</option>
                             </select>
+                        </div>
+                        <div class="item">
+                            <label for="question2">2、你每天的电子设备时长</label>
+                            <select name="electronic">
+                                <option value="c1">0-1小时</option>
+                                <option value="c2">1-4小时</option>
+                                <option value="c3">4小时以上</option>
+                            </select>
+                        </div>
+                        <div class="item">
+                            <label for="question3">3、你每天的室外活动时长 </label>
+                            <select name="outside">
+                                <option value="c1">0-1小时</option>
+                                <option value="c2">1-4小时</option>
+                                <option value="c3">4小时以上</option>
+                            </select>
+                        </div>
+                        <div class="item">
+                            <label for="question4">4、你的年龄是多少 </label>
+                            <input type="text" name="age">
+                        </div>
+                        <div class="item">
+                            <label for="question5">5、家族是否有眼部疾病历史</label>
+                            <select name="familly">
+                                <option value="ture">有</option>
+                                <option value="false">无</option>
+                            </select>
+                        </div>
+                        <div class="item">
+                            <label for="question6">6、你每天是否饮食均衡</label>
+                            <select name="eating">
+                                <option value="ture">是</option>
+                                <option value="false">否</option>
+                            </select>
+                        </div>
+                        <div class="item">
+                            <label for="question7">7、睡眠时长(小时)</label>
+                            <input type="text" name="sleeping">
                         </div>
                     </form>
                     <div class="modal-buttons">
-                        <button class="confirm-btn">确认</button>
+                        <button class="confirm-btn" id="confirm">确认</button>
                         <button class="confirm-btn" id="predictingVisualAcuity">预测视力</button>
+                        <button class="confirm-btn" id="predictingVisualAcuity-submit"
+                            style="display: none;">提交</button>
                     </div>
                 </div>
             </div>
