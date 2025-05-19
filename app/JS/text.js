@@ -171,12 +171,14 @@ document.querySelector("#predictingVisualAcuity").addEventListener("click", func
         }
         const formData = getFormData();
         //发送数据------先打印
-        console.log('表单数据:', formData);
-        wsGetH.send(JSON.stringify({
+
+        const message = JSON.stringify({
             action: 'predict',
             username: localStorage.getItem('username'),
             formData: formData
-        }))
+        })
+        wsGetH.send(message)
+        console.log('表单数据:', message);
     })
 });
 
@@ -665,7 +667,7 @@ function executeMyCode() {
     if (dataFromFrontend === "6") {
         console.log("执行色盲模式");
         if (!window.colorSocket) {
-            window.colorSocket = new WebSocket('ws://localhost:8081');
+            window.colorSocket = new WebSocket('ws://localhost:8080/websocket');
         }
 
         const sendData = {
@@ -682,8 +684,8 @@ function executeMyCode() {
         //当后端发送信息时候更新item和图片路径
         colorSocket.addEventListener('message', function (event) {
             console.log("colorSocket接收到消息:", event.data);
-            const { textStatusCode, imgUrl, colorRes } = JSON.parse(event.data);
-            if (textStatusCode === "TESTING") {
+            const { textStatusCode, Imgname: imgUrl, colorRes } = JSON.parse(event.data);
+            if (textStatusCode === "START") {
                 console.log("开始色盲测试");
                 // 测试图片的路径变化
                 const img = document.getElementById('image-container')
@@ -739,7 +741,7 @@ function executeMyCode() {
             console.log('提交内容:', showStr);
             colorSocket.send(JSON.stringify({
                 textStatusCode: "TESTING",
-                text: showStr
+                anwser: showStr
             }))
         });
 
